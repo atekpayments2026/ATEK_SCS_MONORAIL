@@ -1,0 +1,42 @@
+import kotlin.Boolean;
+import java.time.LocalDate;
+
+CREATE TABLE IF NOT EXISTS UserTable (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL UNIQUE,
+    firstName TEXT NOT NULL,
+    middleName TEXT,
+    lastName TEXT NOT NULL,
+    mobileNumber TEXT NOT NULL,
+    email TEXT NOT NULL,
+    dateOfBirth TEXT AS LocalDate NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    isActive INTEGER AS Boolean NOT NULL
+);
+
+saveOrUpdate:
+INSERT OR REPLACE INTO UserTable (
+    userId,
+    firstName,
+    middleName,
+    lastName,
+    mobileNumber,
+    email,
+    dateOfBirth,
+    username,
+    password,
+    isActive
+) VALUES ?;
+
+getByUsername:
+SELECT * FROM UserTable WHERE username = :username;
+
+getById:
+SELECT * FROM UserTable WHERE userId = :userId;
+
+getAll:
+SELECT * FROM UserTable;
+
+deleteAll:
+DELETE FROM UserTable;

@@ -1,0 +1,37 @@
+import kotlin.Boolean;
+
+CREATE TABLE IF NOT EXISTS ConfigTable (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    equipmentTypeId INTEGER NOT NULL,
+    equipmentNumber INTEGER NOT NULL,
+    equipmentId TEXT NOT NULL UNIQUE,
+    stationId INTEGER NOT NULL,
+    stationName TEXT NOT NULL,
+    status INTEGER AS Boolean NOT NULL,
+    loginUser TEXT,
+    version INTEGER NOT NULL
+);
+
+saveOrUpdate:
+INSERT OR REPLACE INTO ConfigTable (
+    equipmentTypeId,
+    equipmentNumber,
+    status,
+    equipmentId,
+    stationId,
+    stationName,
+    loginUser,
+    version
+) VALUES ?;
+
+getById:
+SELECT * FROM ConfigTable WHERE equipmentId = :equipmentId;
+
+getFirstConfig:
+SELECT * FROM ConfigTable LIMIT 1;
+
+getAll:
+SELECT * FROM ConfigTable;
+
+deleteAll:
+DELETE FROM ConfigTable;

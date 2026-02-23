@@ -1,0 +1,62 @@
+import com.atek.scs.utils.ServiceMode;
+import kotlin.Boolean;
+
+CREATE TABLE IF NOT EXISTS EquipmentTable (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    equipmentId TEXT NOT NULL UNIQUE,
+    equipmentNumber INTEGER NOT NULL,
+    equipmentTypeId INTEGER NOT NULL,
+    equipmentModeId INTEGER NOT NULL,
+    currentModeId INTEGER NOT NULL,
+    equipmentRole INTEGER NOT NULL,
+    locationId INTEGER NOT NULL,
+    coordinateX REAL NOT NULL,
+    coordinateY REAL NOT NULL,
+    status INTEGER AS Boolean NOT NULL,
+    ipAddress TEXT NOT NULL,
+    isConnected INTEGER AS Boolean NOT NULL,
+    stationId INTEGER NOT NULL,
+    stationName TEXT NOT NULL,
+    equipmentVersion INTEGER NOT NULL,
+    serviceMode TEXT AS ServiceMode NOT NULL DEFAULT 'IN_SERVICE',
+    isEntryExitOverride INTEGER AS Boolean NOT NULL DEFAULT 0,
+    isExcessTimeOverride INTEGER AS Boolean NOT NULL DEFAULT 0,
+    isExcessFareOverride INTEGER AS Boolean NOT NULL DEFAULT 0,
+    isFareOverrideOne INTEGER AS Boolean NOT NULL DEFAULT 0,
+    isFareOverrideTwo INTEGER AS Boolean NOT NULL DEFAULT 0
+
+);
+
+saveOrUpdate:
+INSERT OR REPLACE INTO EquipmentTable (
+    equipmentId,
+    equipmentNumber,
+    equipmentTypeId,
+    equipmentModeId,
+    currentModeId,
+    equipmentRole,
+    locationId,
+    coordinateX,
+    coordinateY,
+    status,
+    ipAddress,
+    isConnected,
+    stationId,
+    stationName,
+    equipmentVersion,
+    serviceMode,
+    isEntryExitOverride,
+    isExcessTimeOverride,
+    isExcessFareOverride,
+    isFareOverrideOne,
+    isFareOverrideTwo
+) VALUES ?;
+
+getAll:
+SELECT * FROM EquipmentTable;
+
+getById:
+SELECT * FROM EquipmentTable WHERE equipmentId = :equipmentId;
+
+deleteAll:
+DELETE FROM EquipmentTable;

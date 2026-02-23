@@ -1,0 +1,39 @@
+import kotlin.Boolean;
+import java.time.Instant;
+
+CREATE TABLE IF NOT EXISTS AuditTable (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    operation TEXT NOT NULL,
+    state INTEGER NOT NULL,
+    equipmentId TEXT NOT NULL,
+    equipmentTypeId INTEGER NOT NULL,
+    isSynced INTEGER AS Boolean NOT NULL DEFAULT 0,
+    userId TEXT NOT NULL,
+    createdAt TEXT AS Instant NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    updatedAt TEXT AS Instant NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    CONSTRAINT uq_operation_equipmentId UNIQUE (operation, equipmentId)
+);
+
+saveOrUpdate:
+INSERT OR REPLACE INTO AuditTable (
+    operation,
+    state,
+    equipmentId,
+    equipmentTypeId,
+    isSynced,
+    userId,
+    createdAt,
+    updatedAt
+) VALUES ?;
+
+getAll:
+SELECT * FROM AuditTable ORDER BY createdAt DESC;
+
+getByEquipmentId:
+SELECT * FROM AuditTable WHERE equipmentId = :equipmentId ORDER BY createdAt DESC;
+
+getUnsynced:
+SELECT * FROM AuditTable WHERE isSynced = 0;
+
+deleteAll:
+DELETE FROM AuditTable;

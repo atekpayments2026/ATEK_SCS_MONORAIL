@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -97,14 +98,14 @@ object StationSummaryScreen : Screen {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
                 Row(modifier = Modifier.fillMaxHeight(0.82f)) {
-                    Column(modifier = Modifier.fillMaxHeight().fillMaxWidth(0.75f)) {
+                    Column(modifier = Modifier.fillMaxHeight().fillMaxWidth(0.8f)) {
                         EquipmentContainer(uiState, onSetCoordinates, onChangeMode, onUpdateEquipmentServiceMode)
                     }
                     Column(modifier = Modifier.fillMaxSize().padding(start = 10.dp)) {
                         CommandContainer(uiState, onUpdateStationEmergency, onSaveLayout, onLogout, onNavigateToLogin, onNavigateToSpecialModes, onNavigateToEOSReporting)
                     }
                 }
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(8.dp))) {
+                Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp).background(color = Color(0Xffdfefee)).clip(RoundedCornerShape(8.dp))) {
                     BottomBar(uiState.analytics)
                 }
             }
@@ -128,7 +129,7 @@ object StationSummaryScreen : Screen {
         onUpdateEquipmentServiceMode: (String, ServiceMode) -> Unit
     ) {
         Card(modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxSize().background(color = Color(0xffdfefee)),) {
                 for (equipment in uiState.equipments) {
                     Equipment(equipment, uiState.isLoggedIn, onSetCoordinates, onChangeMode, onUpdateEquipmentServiceMode)
                 }
@@ -147,6 +148,30 @@ object StationSummaryScreen : Screen {
         var offsetX by remember(equipment.cordX) { mutableStateOf(equipment.cordX.toFloat()) }
         var offsetY by remember(equipment.cordY) { mutableStateOf(equipment.cordY.toFloat()) }
         var showDialog by remember { mutableStateOf(false) }
+
+        val imageName = when (equipment.eqTypeId) {
+
+            EquipmentType.AG.id -> {
+                when (equipment.eqModeId) {
+
+                    GateMode.ENTRY.id -> "entry_ag"
+
+                    GateMode.EXIT.id -> "exit_ag"
+
+                    GateMode.BI_DI.id -> {
+                        when (equipment.currentModeId) {
+                            GateMode.ENTRY.id -> "entry_ag"
+                            GateMode.EXIT.id -> "exit_ag"
+                            else -> "bidi_to_bidi"
+                        }
+                    }
+
+                    else -> "mono_tom1"
+                }
+            }
+
+            else -> "mono_tom"
+        }
 
         Box(
             modifier = Modifier
@@ -170,7 +195,8 @@ object StationSummaryScreen : Screen {
             ) {
                 Image(
                     modifier = Modifier.fillMaxWidth().weight(2f),
-                    bitmap = imageResource(if (equipment.eqTypeId == EquipmentType.AG.id) "gates" else "tom"),
+                    bitmap = imageResource(/*if (equipment.eqTypeId == EquipmentType.AG.id) "gates" else "tom"*/
+                        imageName),
                     contentDescription = "Gate ${equipment.getName()}",
                 )
                 Text(
@@ -220,7 +246,7 @@ object StationSummaryScreen : Screen {
             )
         }
 
-        Card(modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface))
+        Card(modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(containerColor = Color(0xffdfefee)))
                 {
             Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
                 Text("EMERGENCY OPTIONS", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
@@ -305,20 +331,16 @@ object StationSummaryScreen : Screen {
         // The implementation of this Composable can remain largely the same,
         // as it was already receiving the data it needed as a parameter.
         val mediaTypes = listOf(MediaType.PQR, MediaType.MQR, MediaType.OL, MediaType.CL)
-        Column(modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium).background(MaterialTheme.colorScheme.background)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text("EQUIPMENTS TRANSACTION SUMMARY", fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium).background(color = Color(0xffdfefee)), verticalArrangement = Arrangement.Center) {
             Row(modifier = Modifier.fillMaxWidth().padding(2.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
                 mediaTypes.forEach { mediaType ->
                     OutlinedCard(
-                        modifier = Modifier.width(250.dp),
+                        modifier = Modifier.height(100.dp).width(250.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         shape = MaterialTheme.shapes.small,
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        Row(Modifier.fillMaxWidth()) {
+                        Row(Modifier.fillMaxWidth().background(color = Color(0xffdfefee)) ) {
                             Column(
                                 modifier = Modifier.weight(.5f).fillMaxHeight().background(MaterialTheme.colorScheme.primary),
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -332,7 +354,7 @@ object StationSummaryScreen : Screen {
                                 )
                             }
                             Column(
-                                modifier = Modifier.weight(1f).fillMaxSize().padding(8.dp),
+                                modifier = Modifier.weight(1f).fillMaxSize().padding(8.dp).background(color = Color(0xffdfefee)),
                                 verticalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

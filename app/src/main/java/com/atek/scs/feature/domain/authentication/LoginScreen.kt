@@ -1,5 +1,6 @@
 package com.atek.scs.feature.domain.authentication
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -43,7 +44,7 @@ object LoginScreen : Screen {
             modifier = Modifier.fillMaxSize()
         ) {
             ElevatedCard(
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier.align(Alignment.Center).background(MaterialTheme.colorScheme.primary)
             ) {
                 Column(
                     modifier = Modifier
@@ -126,7 +127,7 @@ object LoginScreen : Screen {
 }
 
 
-@Preview
+@Preview(device = "spec:parent=pixel_5,orientation=landscape")
 @Composable
 private fun Preview() {
     AtekScsTheme {

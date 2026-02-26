@@ -151,6 +151,7 @@ object MainScreen : Screen {
                     .padding(8.dp),
                 bitmap = imageResource("monorail_logo"),
                 contentDescription = "MMOPL Logo",
+                contentScale = ContentScale.Fit
             )
 
             // STATION NAME / DATE TIME
@@ -163,11 +164,18 @@ object MainScreen : Screen {
             ) {
                 Text(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 150.dp),
+                        .fillMaxWidth(),
+//                        .padding(start = 150.dp),
                     text = viewModel.config?.stnName?.uppercase() ?: "N/A",
                     style = MaterialTheme.typography.displayMedium,
                     fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = dateTime,
+                    style = MaterialTheme.typography.labelSmall,
                     color = Color.Black,
                     textAlign = TextAlign.Center
                 )
@@ -175,7 +183,7 @@ object MainScreen : Screen {
 
             Column(
                 modifier = Modifier
-                    .weight(2.5f)
+                    .weight(1.5f)
                     .fillMaxHeight()
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -189,13 +197,6 @@ object MainScreen : Screen {
                     bitmap = imageResource("mmmocl_logo"),
                     contentDescription = "MMMOCL Logo",
                     contentScale = ContentScale.Fit
-                )
-
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = dateTime,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Black
                 )
             }
 

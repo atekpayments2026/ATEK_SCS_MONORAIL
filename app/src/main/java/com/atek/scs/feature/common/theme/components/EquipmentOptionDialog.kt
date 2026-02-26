@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.atek.scs.feature.common.database.entity.AnalyticsConfig
 import com.atek.scs.feature.common.database.entity.EquipmentConfig
 import com.atek.scs.feature.common.theme.imageResource
 import com.atek.scs.utils.EquipmentType
@@ -170,6 +171,7 @@ private fun EquipmentModeOptions(
 private fun EquipmentDetails(
     modifier: Modifier = Modifier,
     equipment: EquipmentConfig,
+//    analyticsConfig: AnalyticsConfig
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -183,7 +185,9 @@ private fun EquipmentDetails(
         Column(modifier = Modifier.weight(2f).padding(8.dp)) {
             Text("EQUIPMENT ROLE: ${equipment.eqRole}", fontWeight = FontWeight.Bold)
             Text("NETWORK: ${if (equipment.isConnected) "CONNECTED" else "DISCONNECTED"}")
+//            Text("TRANSACTION COUNT: ${if (equipment.eqId.toBoolean()) " ${if (equipment.eqModeId == GateMode.ENTRY.id) "ENTRY: ${analyticsConfig.entryCount}" else 0}  ${if (equipment.eqModeId == GateMode.EXIT.id) "EXIT: ${analyticsConfig.exitCount}" else 0}"}" )
 
+            //
             if (equipment.eqTypeId == EquipmentType.AG.id) {
                 Text("CURRENT MODE: ${equipment.currentModeId}")
                 // Add service mode display if available in EquipmentConfig

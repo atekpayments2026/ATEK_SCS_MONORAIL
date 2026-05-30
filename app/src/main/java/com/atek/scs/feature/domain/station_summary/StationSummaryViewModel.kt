@@ -148,7 +148,7 @@ class StationSummaryViewModel(
                     equipmentCommService.updateServiceModes(equipment, serviceMode)
                     loadInitialData() // Refresh state from the source of truth
                 } catch (e: Exception) {
-                    _uiState.update { it.copy(dialogMessage = "Failed to update ${equipment.getName()}: ${e.message}") }
+                    _uiState.update { it.copy(dialogMessage = "${equipment.getName()}: ${e.message}") }
                 } finally {
                     _uiState.update { it.copy(isLoading = false) }
                 }

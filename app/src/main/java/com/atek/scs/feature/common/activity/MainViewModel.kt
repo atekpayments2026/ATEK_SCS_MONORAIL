@@ -1,5 +1,7 @@
 package com.atek.scs.feature.common.activity
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -26,12 +28,12 @@ class MainViewModel : ScreenModel {
             private set
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun onCreate() {
+        // SET INSTANCE
+        instance = this
+
         screenModelScope.launch {
-
-            // SET INSTANCE
-            instance = this@MainViewModel
-
             // MONITOR FOR CONFIG CHANGES
             launch(Dispatchers.IO) {
                 ConfigService.getConfigFlow()
@@ -44,11 +46,13 @@ class MainViewModel : ScreenModel {
 
             // MONITORING SERVICES
             launch(Dispatchers.IO) {
-                MaintenanceService.getInstance {
-                    withContext(Dispatchers.Main) {
-                        ccsStatus = it
-                    }
-                }.start()
+                MaintenanceService.getInstance().start()
+            }
+
+            launch(Dispatchers.Main) {
+                MaintenanceService.getInstance().connectivityFlow.collectLatest {
+                    ccsStatus = it
+                }
             }
         }
     }

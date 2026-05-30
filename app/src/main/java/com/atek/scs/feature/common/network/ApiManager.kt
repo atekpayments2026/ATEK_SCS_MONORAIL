@@ -34,20 +34,21 @@ object ApiManager {
         }
         .build()
 
-/*    val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(StationId::class.java, StationIdAdapter())
-        .setLenient()
-        .create()*/
+    private val fastHttpClient = okHttpClient.newBuilder()
+        .connectTimeout(5, TimeUnit.SECONDS)
+        .readTimeout(5, TimeUnit.SECONDS)
+        .build()
 
-    private fun createRetrofitService(baseUrl: String): ApiService =
+    private fun createRetrofitService(baseUrl: String, client: OkHttpClient = okHttpClient): ApiService =
         Retrofit.Builder()
             .baseUrl(baseUrl)
-            .client(okHttpClient)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create(/*gson*/))
             .build()
             .create(ApiService::class.java)
 
     fun getCCService(): ApiService = createRetrofitService(ATEK_CCS_BASE_URL)
+    fun getFastCCService(): ApiService = createRetrofitService(ATEK_CCS_BASE_URL, fastHttpClient)
     fun getQRService(): ApiService = createRetrofitService(ATEK_QR_BASE_URL)
 
     fun equipmentApiService(ip: String): ApiService = createRetrofitService("http://$ip:3030/api/")

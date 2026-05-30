@@ -18,36 +18,24 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import org.tinylog.Logger
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.security.SecureRandom
-import kotlin.random.Random
 
-class MaintenanceService(
-    private val onConnectivityChanges: (suspend (
-        isConnected: Boolean
-    ) -> Unit)? = null
-) {
+class MaintenanceService private constructor() {
+
+    private val _connectivityFlow = MutableStateFlow(false)
+    val connectivityFlow: StateFlow<Boolean> = _connectivityFlow.asStateFlow()
 
     companion object {
 
-        private val DELAY_PERIOD =
-            1 * 60 * 1000L + Random(getDeviceSeed()).nextInt(0, 50 * 1000)
+        private val DELAY_PERIOD = 10 * 1000L
         private var instance: MaintenanceService? = null
 
-        /**
-         * Get the singleton instance of MaintenanceService.
-         */
-        fun getInstance(
-            onConnectivityChanges: (suspend (
-                isConnected: Boolean
-            ) -> Unit)? = null
-        ): MaintenanceService {
-            if (instance == null) instance = MaintenanceService(onConnectivityChanges)
+        fun getInstance(): MaintenanceService {
+            if (instance == null) instance = MaintenanceService()
             return instance!!
-        }
-
-        private fun getDeviceSeed(): Int {
-            val secureRandom = SecureRandom()
-            return secureRandom.nextInt(99601) + 1000
         }
 
     }
@@ -56,6 +44,7 @@ class MaintenanceService(
      * Starts the maintenance service.
      * Continuously checks connectivity and performs maintenance tasks.
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun start() = withContext(Dispatchers.Default) {
         while (isActive) {
             try {
@@ -86,6 +75,7 @@ class MaintenanceService(
     /**
      * Performs various maintenance tasks.
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun doWork() {
         runTask("CHECKING CONNECTIVITY WITH CCS") { connectivity() }
         runTask("CHECKING FOR CONFIG UPDATE") { configUpdate() }
@@ -101,8 +91,8 @@ class MaintenanceService(
      */
     private suspend fun connectivity() {
         val isConnected = isUrlReachable()
-        onConnectivityChanges?.invoke(isConnected)
-        Logger.debug{"Internet connectivity is ${if (isConnected) "available" else "not available"}"}
+        _connectivityFlow.value = isConnected
+        Logger.debug { "Internet connectivity is ${if (isConnected) "available" else "not available"}" }
     }
 
     /**
@@ -318,12 +308,15 @@ class MaintenanceService(
      */
     private suspend fun isUrlReachable(): Boolean {
         return try {
-            ApiManager
-                .getQRService()
+            val response = ApiManager
+                .getFastCCService()
                 .checkStatus()
-                .body()!!
+            
+            val isSuccess = response.isSuccessful
+            Logger.debug { "CCS Status Check: ${response.code()} - isSuccess: $isSuccess" }
+            isSuccess
         } catch (e: Exception) {
-            Logger.error(e)
+            Logger.error { "CCS Connectivity Error: ${e.message}" }
             false
         }
     }

@@ -1,5 +1,7 @@
 package com.atek.scs.feature.common.activity
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -38,6 +40,7 @@ object MainScreen : Screen {
 
     private fun readResolve(): Any = MainScreen
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow

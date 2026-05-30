@@ -72,18 +72,6 @@ enum class GateMode(val id: Long, val displayName: String) {
     }
 }
 
-/*enum class ServiceMode(val mode: Long) {
-    IN_SERVICE(7),
-    OUT_OF_SERVICE(5),
-    EMERGENCY_START(6),
-    MAINTENANCE(8);
-    companion object {
-
-        fun get(mode: Long): ServiceMode? = entries.find { it.mode == mode }
-        fun get(mode: String): ServiceMode? = entries.find { it.name == mode }
-    }
-}*/
-
 /**
  * Enum representing media types associated with ticketing.
  * Media types include OL (Open Loop), CL (Close Loop), MQR (Mobile Ticket), PQR (Paper Ticket), and WQR (WhatsApp Ticket).

@@ -1,9 +1,11 @@
 package com.atek.scs.feature.domain.station_summary
 
+import android.R.attr.translationY
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -12,7 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,11 +44,12 @@ import com.atek.scs.utils.GateMode
 import com.atek.scs.utils.MediaType
 import com.atek.scs.utils.ServiceMode
 import database.GetSummaryByMediaType
-import kotlin.math.roundToInt
+
+
 
 object StationSummaryScreen : Screen {
 
- fun readResolve(): Any = StationSummaryScreen
+    fun readResolve(): Any = StationSummaryScreen
 
     @Composable
     override fun Content() {
@@ -68,7 +75,7 @@ object StationSummaryScreen : Screen {
             onNavigateToSpecialModes = { navigator.push(SpecialFareModesScreen) },
             onNavigateToEOSReporting = { navigator.push(StationReportingScreen) },
 
-        )
+            )
     }
 
     @Composable
@@ -96,23 +103,53 @@ object StationSummaryScreen : Screen {
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)) {
                 Row(modifier = Modifier.fillMaxHeight(0.82f)) {
-                    Column(modifier = Modifier.fillMaxHeight().fillMaxWidth(0.8f)) {
-                        EquipmentContainer(uiState, onSetCoordinates, onChangeMode, onUpdateEquipmentServiceMode)
+                    Column(modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.82f)) {
+                        EquipmentContainer(
+                            uiState,
+                            onSetCoordinates,
+                            onChangeMode,
+                            onUpdateEquipmentServiceMode
+                        )
                     }
-                    Column(modifier = Modifier.fillMaxSize().padding(start = 10.dp)) {
-                        CommandContainer(uiState, onUpdateStationEmergency, onSaveLayout, onLogout, onNavigateToLogin, onNavigateToSpecialModes, onNavigateToEOSReporting)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .fillMaxWidth(0.8f)
+                            .padding(start = 10.dp)
+                    ) {
+                        CommandContainer(
+                            uiState,
+                            onUpdateStationEmergency,
+                            onSaveLayout,
+                            onLogout,
+                            onNavigateToLogin,
+                            onNavigateToSpecialModes,
+                            onNavigateToEOSReporting
+                        )
                     }
                 }
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp).background(color = Color(0Xffdfefee)).clip(RoundedCornerShape(8.dp))) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 6.dp)
+                        .background(color = Color(0Xffdfefee))
+                        .clip(RoundedCornerShape(8.dp))
+                ) {
                     BottomBar(uiState.analytics)
                 }
             }
 
             if (uiState.isLoading) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -128,15 +165,29 @@ object StationSummaryScreen : Screen {
         onChangeMode: (EquipmentConfig, GateMode) -> Unit,
         onUpdateEquipmentServiceMode: (String, ServiceMode) -> Unit
     ) {
-        Card(modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-            Box(modifier = Modifier.fillMaxSize().background(color = Color(0xffdfefee)),) {
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color(0xffdfefee))) {
                 for (equipment in uiState.equipments) {
-                    Equipment(equipment, uiState.isLoggedIn, onSetCoordinates, onChangeMode, onUpdateEquipmentServiceMode)
+                    key(equipment.eqId) {
+                        Equipment(
+                            equipment,
+                            uiState.isLoggedIn,
+                            onSetCoordinates,
+                            onChangeMode,
+                            onUpdateEquipmentServiceMode
+                        )
+                    }
                 }
             }
         }
     }
 
+    @SuppressLint("AutoboxingStateCreation", "LocalContextResourcesRead")
     @Composable
     private fun Equipment(
         equipment: EquipmentConfig,
@@ -145,63 +196,123 @@ object StationSummaryScreen : Screen {
         onChangeMode: (EquipmentConfig, GateMode) -> Unit,
         onUpdateEquipmentServiceMode: (String, ServiceMode) -> Unit
     ) {
-        var offsetX by remember(equipment.cordX) { mutableStateOf(equipment.cordX.toFloat()) }
-        var offsetY by remember(equipment.cordY) { mutableStateOf(equipment.cordY.toFloat()) }
+        var offsetX by remember(equipment.eqId) {
+            mutableFloatStateOf(equipment.cordX.toFloat())
+        }
+
+        var offsetY by remember(equipment.eqId) {
+            mutableFloatStateOf(equipment.cordY.toFloat())
+        }
         var showDialog by remember { mutableStateOf(false) }
+        var isDragging by remember { mutableStateOf(false) }
 
-        val imageName = when (equipment.eqTypeId) {
-
-            EquipmentType.AG.id -> {
-                when (equipment.eqModeId) {
-
-                    GateMode.ENTRY.id -> "entry_ag"
-
-                    GateMode.EXIT.id -> "exit_ag"
-
-                    GateMode.BI_DI.id -> {
-                        when (equipment.currentModeId) {
-                            GateMode.ENTRY.id -> "entry_ag"
-                            GateMode.EXIT.id -> "exit_ag"
-                            else -> "bidi_to_bidi"
-                        }
-                    }
-
-                    else -> "mono_tom1"
-                }
+        // Sync local state when external data actually changes (but not during drag)
+        LaunchedEffect(equipment.cordX, equipment.cordY) {
+            if (!isDragging) {
+                offsetX = equipment.cordX.toFloat()
+                offsetY = equipment.cordY.toFloat()
             }
+        }
 
-            else -> "mono_tom"
+        val imageName = remember(equipment.eqTypeId, equipment.eqModeId, equipment.currentModeId) {
+            when (equipment.eqTypeId) {
+                EquipmentType.AG.id -> {
+                    when (equipment.eqModeId) {
+                        GateMode.ENTRY.id -> "entry_ag"
+                        GateMode.EXIT.id -> "exit_ag"
+                        GateMode.BI_DI.id -> {
+                            when (equipment.currentModeId) {
+                                GateMode.ENTRY.id -> "entry_ag"
+                                GateMode.EXIT.id -> "exit_ag"
+                                else -> "bidi_to_bidi"
+                            }
+                        }
+                        else -> "mono_tom1"
+                    }
+                }
+                else -> "mono_tom"
+            }
+        }
+
+        val imageBitmap = imageResource(imageName)
+
+        val equipmentName = remember(equipment.eqId) {
+            equipment.getName()
         }
 
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
-                .pointerInput(Unit) {
-                    detectDragGesturesAfterLongPress { change, dragAmount ->
-                        if (!isLoggedIn) return@detectDragGesturesAfterLongPress
-                        change.consume()
-                        offsetX = (offsetX + dragAmount.x).coerceIn(0F, 1500F)
-                        offsetY = (offsetY + dragAmount.y).coerceIn(0F, 665F)
-                        onSetCoordinates(equipment, offsetX, offsetY)
-                    }
+                .zIndex(1f)
+                .graphicsLayer {
+                    translationX = offsetX
+                    translationY = offsetY
                 }
-                .clickable { showDialog = true },
+                .pointerInput(equipment.eqId, isLoggedIn) {
+                    if (!isLoggedIn) return@pointerInput
+
+                    detectDragGestures(
+                        onDragStart = {
+                            isDragging = true
+                        },
+
+                        onDragEnd = {
+                            isDragging = false
+
+                            onSetCoordinates(
+                                equipment,
+                                offsetX,
+                                offsetY
+                            )
+                        },
+
+                        onDragCancel = {
+                            isDragging = false
+                        },
+
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+
+                            offsetX += dragAmount.x
+                            offsetY += dragAmount.y
+                        }
+                    )
+                }
+
+                .pointerInput(isDragging) {
+                }
+                .clickable(
+                    enabled = !isDragging,
+                    onClick = { showDialog = true }
+                )
         ) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(5.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(5.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
+                val context = LocalContext.current
+
+                val resId = remember(imageName) {
+                    context.resources.getIdentifier(
+                        imageName,
+                        "drawable",
+                        context.packageName
+                    )
+                }
+
                 Image(
-                    modifier = Modifier.fillMaxWidth().weight(2f),
-                    bitmap = imageResource(/*if (equipment.eqTypeId == EquipmentType.AG.id) "gates" else "tom"*/
-                        imageName),
-                    contentDescription = "Gate ${equipment.getName()}",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(2f),
+                    painter = painterResource(resId),
+                    contentDescription = equipmentName
                 )
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = equipment.getName(),
+                    text = equipmentName,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -212,8 +323,18 @@ object StationSummaryScreen : Screen {
                 EquipmentOptionDialog(
                     equipment = equipment,
                     onChangeMode = { mode -> onChangeMode(equipment, mode) },
-                    onEnableEmergency = { onUpdateEquipmentServiceMode(equipment.eqId, ServiceMode.EMERGENCY_START) },
-                    onMakeInService = { onUpdateEquipmentServiceMode(equipment.eqId, ServiceMode.EMERGENCY_STOP) },
+                    onEnableEmergency = {
+                        onUpdateEquipmentServiceMode(
+                            equipment.eqId,
+                            ServiceMode.EMERGENCY_START
+                        )
+                    },
+                    onMakeInService = {
+                        onUpdateEquipmentServiceMode(
+                            equipment.eqId,
+                            ServiceMode.EMERGENCY_STOP
+                        )
+                    },
                     onDismiss = { showDialog = false },
                     isLoggedIn = isLoggedIn
                 )
@@ -246,10 +367,18 @@ object StationSummaryScreen : Screen {
             )
         }
 
-        Card(modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(containerColor = Color(0xffdfefee)))
-                {
-            Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                Text("EMERGENCY OPTIONS", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xffdfefee))
+        ) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)) {
+                Text(
+                    "EMERGENCY OPTIONS",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
@@ -275,8 +404,14 @@ object StationSummaryScreen : Screen {
                     Text("RESTORE")
                 }
 
-                HorizontalDivider(Modifier.fillMaxWidth().padding(vertical = 10.dp))
-                Text("USER OPTIONS", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                HorizontalDivider(Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp))
+                Text(
+                    "USER OPTIONS",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = { if (uiState.isLoggedIn) onLogout() else onNavigateToLogin() },
@@ -293,8 +428,14 @@ object StationSummaryScreen : Screen {
                     Text("SAVE LAYOUT")
                 }
 
-                HorizontalDivider(Modifier.fillMaxWidth().padding(vertical = 10.dp))
-                Text("OTHERS", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                HorizontalDivider(Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp))
+                Text(
+                    "OTHERS",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     shape = ShapeDefaults.Medium,
@@ -312,9 +453,10 @@ object StationSummaryScreen : Screen {
                     Text("STATION REPORT")
                 }
             }
-                  Column(modifier = Modifier.weight(1f)) { }
+            Column(modifier = Modifier.weight(1f)) { }
         }
     }
+
 
     @Composable
     fun ConfirmDialog(title: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
@@ -331,18 +473,35 @@ object StationSummaryScreen : Screen {
         // The implementation of this Composable can remain largely the same,
         // as it was already receiving the data it needed as a parameter.
         val mediaTypes = listOf(MediaType.PQR, MediaType.MQR, MediaType.OL, MediaType.CL)
-        Column(modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium).background(color = Color(0xffdfefee)), verticalArrangement = Arrangement.Center) {
-            Row(modifier = Modifier.fillMaxWidth().padding(2.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(MaterialTheme.shapes.medium)
+                .background(color = Color(0xffdfefee)), verticalArrangement = Arrangement.Center
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(2.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 mediaTypes.forEach { mediaType ->
                     OutlinedCard(
-                        modifier = Modifier.height(100.dp).width(250.dp),
+                        modifier = Modifier
+                            .height(100.dp)
+                            .width(250.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         shape = MaterialTheme.shapes.small,
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        Row(Modifier.fillMaxWidth().background(color = Color(0xffdfefee)) ) {
+                        Row(Modifier
+                            .fillMaxWidth()
+                            .background(color = Color(0xffdfefee))) {
                             Column(
-                                modifier = Modifier.weight(.5f).fillMaxHeight().background(MaterialTheme.colorScheme.primary),
+                                modifier = Modifier
+                                    .weight(.5f)
+                                    .fillMaxHeight()
+                                    .background(MaterialTheme.colorScheme.primary),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
@@ -354,21 +513,41 @@ object StationSummaryScreen : Screen {
                                 )
                             }
                             Column(
-                                modifier = Modifier.weight(1f).fillMaxSize().padding(8.dp).background(color = Color(0xffdfefee)),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxSize()
+                                    .padding(8.dp)
+                                    .background(color = Color(0xffdfefee)),
                                 verticalArrangement = Arrangement.SpaceEvenly
                             ) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("ENTRY : ", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                     Text(
-                                        text = (analytics[mediaType]?.totalEntryCount ?: 0).toString(),
+                                        "ENTRY : ",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = (analytics[mediaType]?.totalEntryCount
+                                            ?: 0).toString(),
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("EXIT : ", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                     Text(
-                                        text = (analytics[mediaType]?.totalExitCount ?: 0).toString(),
+                                        "EXIT : ",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = (analytics[mediaType]?.totalExitCount
+                                            ?: 0).toString(),
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.Bold
                                     )

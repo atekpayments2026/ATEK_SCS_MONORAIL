@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.security.SecureRandom
+import kotlin.random.Random
 
 class MaintenanceService private constructor() {
 
@@ -30,13 +31,20 @@ class MaintenanceService private constructor() {
 
     companion object {
 
-        private val DELAY_PERIOD = 10 * 1000L
+        private val DELAY_PERIOD =
+            1 * 60 * 1000L + Random(getDeviceSeed()).nextInt(0, 50 * 1000)
         private var instance: MaintenanceService? = null
 
         fun getInstance(): MaintenanceService {
             if (instance == null) instance = MaintenanceService()
             return instance!!
         }
+
+        private fun getDeviceSeed(): Int {
+            val secureRandom = SecureRandom()
+            return secureRandom.nextInt(99601) + 1000
+        }
+
 
     }
 
@@ -309,7 +317,7 @@ class MaintenanceService private constructor() {
     private suspend fun isUrlReachable(): Boolean {
         return try {
             val response = ApiManager
-                .getFastCCService()
+                .getQRService()
                 .checkStatus()
             
             val isSuccess = response.isSuccessful

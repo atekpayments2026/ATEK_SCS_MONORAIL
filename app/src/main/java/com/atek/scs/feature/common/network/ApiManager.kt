@@ -34,10 +34,6 @@ object ApiManager {
         }
         .build()
 
-    private val fastHttpClient = okHttpClient.newBuilder()
-        .connectTimeout(5, TimeUnit.SECONDS)
-        .readTimeout(5, TimeUnit.SECONDS)
-        .build()
 
     private fun createRetrofitService(baseUrl: String, client: OkHttpClient = okHttpClient): ApiService =
         Retrofit.Builder()
@@ -48,7 +44,6 @@ object ApiManager {
             .create(ApiService::class.java)
 
     fun getCCService(): ApiService = createRetrofitService(ATEK_CCS_BASE_URL)
-    fun getFastCCService(): ApiService = createRetrofitService(ATEK_CCS_BASE_URL, fastHttpClient)
     fun getQRService(): ApiService = createRetrofitService(ATEK_QR_BASE_URL)
 
     fun equipmentApiService(ip: String): ApiService = createRetrofitService("http://$ip:3030/api/")

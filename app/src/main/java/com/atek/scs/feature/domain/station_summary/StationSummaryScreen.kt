@@ -196,13 +196,8 @@ object StationSummaryScreen : Screen {
         onChangeMode: (EquipmentConfig, GateMode) -> Unit,
         onUpdateEquipmentServiceMode: (String, ServiceMode) -> Unit
     ) {
-        var offsetX by remember(equipment.eqId) {
-            mutableFloatStateOf(equipment.cordX.toFloat())
-        }
-
-        var offsetY by remember(equipment.eqId) {
-            mutableFloatStateOf(equipment.cordY.toFloat())
-        }
+        var offsetX by remember(equipment.eqId) { mutableFloatStateOf(equipment.cordX.toFloat()) }
+        var offsetY by remember(equipment.eqId) { mutableFloatStateOf(equipment.cordY.toFloat()) }
         var showDialog by remember { mutableStateOf(false) }
         var isDragging by remember { mutableStateOf(false) }
 

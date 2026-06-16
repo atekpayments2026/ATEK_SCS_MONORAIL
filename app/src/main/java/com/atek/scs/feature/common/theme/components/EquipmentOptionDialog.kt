@@ -179,19 +179,21 @@ private fun EquipmentDetails(
     ) {
         Image(
             modifier = Modifier.weight(1f).size(100.dp).padding(8.dp),
-            bitmap = imageResource(if (equipment.eqTypeId == EquipmentType.AG.id) "gates" else "tom"),
+            bitmap = imageResource(if (equipment.eqTypeId == EquipmentType.AG.id) "gates" else "mono_tom"),
             contentDescription = "Equipment Icon: ${equipment.getName()}",
         )
         Column(modifier = Modifier.weight(2f).padding(8.dp)) {
             Text("EQUIPMENT ROLE: ${equipment.eqRole}", fontWeight = FontWeight.Bold)
+            Text("EQUIPMENT ID: ${equipment.eqId}")
+            Text("EQUIPMENT IP: ${equipment.ipAddress}")
             Text("NETWORK: ${if (equipment.isConnected) "CONNECTED" else "DISCONNECTED"}")
-//            Text("TRANSACTION COUNT: ${if (equipment.eqId.toBoolean()) " ${if (equipment.eqModeId == GateMode.ENTRY.id) "ENTRY: ${analyticsConfig.entryCount}" else 0}  ${if (equipment.eqModeId == GateMode.EXIT.id) "EXIT: ${analyticsConfig.exitCount}" else 0}"}" )
+//            Text("TRANSACTION COUNT: ${if (equipment.eqId.toBoolean()) " ${if (equipment.eqModeId == GateMode.ENTRY.id) "ENTRY: ${analyticsConfig.entryCount}" else 0}  ${if (equipment.eqModeId == GateMode.EXIT.id) "EXIT: ${analyticsConfig.exitCount}" else 0}" else "EQ Id is mismatch"}" )
 
             //
             if (equipment.eqTypeId == EquipmentType.AG.id) {
                 Text("CURRENT MODE: ${equipment.currentModeId}")
                 // Add service mode display if available in EquipmentConfig
-                // equipment.serviceMode?.let { Text("STATUS: ${it.name.replace("_", " ")}") }
+                 equipment.serviceMode?.let { Text("STATUS: ${it.name.replace("_", " ")}") }
             }
         }
     }

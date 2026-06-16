@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffectOnce
@@ -223,4 +224,11 @@ object SpecialFareModesScreen : Screen {
             Text(text, fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal)
         }
     }
+}
+
+
+@Preview(device = "spec:parent=pixel_5,orientation=landscape")
+@Composable
+private fun Preview() {
+    SpecialFareModesScreen.Content()
 }

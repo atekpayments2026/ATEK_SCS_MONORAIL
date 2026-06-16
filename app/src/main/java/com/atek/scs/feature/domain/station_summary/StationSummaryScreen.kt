@@ -222,7 +222,7 @@ object StationSummaryScreen : Screen {
                                 else -> "bidi_to_bidi"
                             }
                         }
-                        else -> "mono_tom1"
+                        else -> "mono_tom"
                     }
                 }
                 else -> "mono_tom"
